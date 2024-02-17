@@ -1,0 +1,13 @@
+module.exports.Token = require('./token.model');
+module.exports.User = require('./user.model');
+module.exports.Form = require('./form.model');
+module.exports.Baby = require('./baby.model');
+module.exports.Growth = require('./growth.model');
+module.exports.Wallet = require('./wallet.model');
+module.exports.Transaction = require('./transaction.model');
+module.exports.Item = require('./item.model');
+module.exports.Upvote = require('./upvote.model');
+module.exports.Recommendations = require('./recommendation.model');
+module.exports.Activity = require('./activity.model');
+module.exports.Question = require('./question.model');
+module.exports.Answer = require('./answer.model');
