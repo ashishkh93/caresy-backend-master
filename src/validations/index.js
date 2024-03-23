@@ -1,12 +1,4 @@
 module.exports.authValidation = require('./auth.validation');
 module.exports.userValidation = require('./user.validation');
-module.exports.formValidation = require('./form.validation');
-module.exports.growthValidation = require('./growth.validation');
-module.exports.transactionValidation = require('./transaction.validation');
-module.exports.itemValidation = require('./item.validation');
-module.exports.upvoteValidation = require('./upvote.validation');
-module.exports.recommendationValidation = require('./recommendation.validation');
-module.exports.activityValidation = require('./activity.validation');
-module.exports.questionValidation = require('./question.validation');
-module.exports.answerValidation = require('./answer.validation');
-module.exports.productSearchValidation = require('./productSearch.validation');
+module.exports.customValidation = require('./custom.validation');
+module.exports.artistValidation = require('./artist.validation');

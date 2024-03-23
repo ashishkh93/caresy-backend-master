@@ -1,44 +1,58 @@
-const mongoose = require('mongoose');
-const { toJSON } = require('./plugins');
 const { tokenTypes } = require('../config/tokens');
 
-const tokenSchema = mongoose.Schema(
-  {
-    token: {
-      type: String,
-      required: true,
-      index: true,
+module.exports = (sequelize, DataTypes) => {
+  const Token = sequelize.define(
+    'Token',
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false,
+      },
+      userId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
+      token: {
+        type: DataTypes.STRING(1000),
+        allowNull: false,
+      },
+      type: {
+        type: DataTypes.ENUM(tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD),
+        allowNull: false,
+      },
+      expires: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      blacklisted: {
+        type: DataTypes.BOOLEAN,
+        default: false,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+      },
     },
-    user: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: [tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD],
-      required: true,
-    },
-    expires: {
-      type: Date,
-      required: true,
-    },
-    blacklisted: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+    {
+      // Define default scope to exclude createdAt and updatedAt globally
+      defaultScope: {
+        attributes: {
+          exclude: ['createdAt', 'updatedAt'],
+        },
+      },
+      timestamps: true,
+    }
+  );
 
-// add plugin that converts mongoose to json
-tokenSchema.plugin(toJSON);
+  Token.associate = function (models) {
+    Token.belongsTo(models.User, { foreignKey: 'userId', as: 'customer' });
+  };
 
-/**
- * @typedef Token
- */
-const Token = mongoose.model('Token', tokenSchema);
-
-module.exports = Token;
+  return Token;
+};

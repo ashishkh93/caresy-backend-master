@@ -1,9 +1,5 @@
-const authTypes = ['googleAuth', 'facebookAuth', 'truecallerAuth', 'phoneAuth', 'emailAuth'];
-const genderTypes = ['Boy' , 'Girl' , 'Others'];
-const activityTypes = ['Sleep' , 'Diaper' ];
+const authTypes = ['emailAuth'];
 
 module.exports = {
   authTypes,
-  genderTypes,
-  activityTypes,
 };

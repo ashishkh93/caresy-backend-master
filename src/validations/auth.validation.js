@@ -4,51 +4,37 @@ const { password } = require('./custom.validation');
 const register = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().custom(password),
-    profile: Joi.object().keys({
-      name : Joi.string().required(),
-      avatar : Joi.string(),
-    }),
+    role: Joi.string().required(),
   }),
 };
 
-const googleAuth = {
+const createPassword = {
+  query: Joi.object().keys({
+    token: Joi.string().required(),
+  }),
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    name: Joi.string().required(),
-    authType: Joi.string().required(),
-    avatar: Joi.string(),
-    phone: Joi.string().allow(''),
-  })
-}
-
-const truecallerAuth = {
-  body: Joi.object().keys({
-    email : Joi.string().email().allow(''),
-    phone : Joi.string().alphanum().max(10).min(10),
-    authType: Joi.string().required(),
-    avatar: Joi.string(),
-  })
-}
-
-const phoneRegister = {
-  body: Joi.object().keys({
-    phone : Joi.string().alphanum().max(10).min(10),
-    authType: Joi.string().required(),
-  })
-}
-
-const phoneVerify = {
-  body: Joi.object().keys({
-    phone : Joi.string().alphanum().max(10).min(10),
-    otp: Joi.number(),
-  })
-}
+    password: Joi.string().required().custom(password),
+  }),
+};
 
 const login = {
   body: Joi.object().keys({
     email: Joi.string().required(),
     password: Joi.string().required(),
+  }),
+};
+
+const phoneVerify = {
+  body: Joi.object().keys({
+    phone: Joi.string().alphanum().max(10).min(10),
+    otp: Joi.number().required(),
+  }),
+};
+
+const phoneLogin = {
+  body: Joi.object().keys({
+    phone: Joi.string().required().alphanum().max(10).min(10),
+    phone: Joi.string().required(),
   }),
 };
 
@@ -79,15 +65,29 @@ const resetPassword = {
   }),
 };
 
+const changeArtistStatus = {
+  params: Joi.object().keys({
+    artistId: Joi.string().required(),
+  }),
+  body: Joi.object().keys({
+    isActive: Joi.boolean().required(),
+    reasonToDecline: Joi.string().when('isActive', {
+      is: false, // The condition where 'isActive' is false
+      then: Joi.required(), // Make 'reason' field required if condition is met
+      otherwise: Joi.forbidden(), // Make 'reason' field forbidden otherwise
+    }),
+  }),
+};
+
 module.exports = {
   register,
-  googleAuth,
-  truecallerAuth,
+  createPassword,
+  phoneLogin,
   login,
-  phoneRegister,
   phoneVerify,
   logout,
   refreshTokens,
   forgotPassword,
   resetPassword,
+  changeArtistStatus,
 };

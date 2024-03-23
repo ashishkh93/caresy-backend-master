@@ -7,8 +7,11 @@ dotenv.config({ path: path.join(__dirname, envpath) });
 const envVarsSchema = Joi.object()
   .keys({
     NODE_ENV: Joi.string().valid('production', 'development', 'test').required(),
-    PORT: Joi.number().default(3000),
-    MONGODB_URL: Joi.string().required().description('Mongo DB url'),
+    DB_HOST: Joi.string().required().description('Host is required'),
+    DB_PORT: Joi.number().default(8081),
+    DB_USER: Joi.string().required().description('USER is required'),
+    DB_PASSWORD: Joi.string().allow(''),
+    DB_NAME: Joi.string().required().description('Database name is required'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -17,6 +20,7 @@ const envVarsSchema = Joi.object()
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
+    ENCRYPTION_ALGO: Joi.string().description('Cipher encryption algo'),
   })
   .unknown();
 
@@ -29,19 +33,19 @@ if (error) {
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
-  mongoose: {
-    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
-    options: {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
+  mysql: {
+    host: envVars.DB_HOST,
+    db_port: envVars.DB_PORT,
+    user: envVars.DB_USER,
+    pass: envVars.DB_PASSWORD,
+    db_name: envVars.DB_NAME,
   },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
     resetPasswordExpirationMinutes: 10,
+    createPasswordExpirationHours: 24,
   },
   email: {
     smtp: {
@@ -54,4 +58,5 @@ module.exports = {
     },
     from: envVars.EMAIL_FROM,
   },
+  encryptionAlgo: envVars.ENCRYPTION_ALGO,
 };

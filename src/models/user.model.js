@@ -1,133 +1,80 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcryptjs');
-const { toJSON, paginate } = require('./plugins');
-const { roles } = require('../config/roles');
-const { authTypes } = require('../config/authtypes');
-const { number } = require('joi');
+module.exports = (sequelize, DataTypes) => {
+  const User = sequelize.define(
+    'User',
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false,
+      },
+      role: {
+        type: DataTypes.ENUM('superAdmin', 'artist', 'user'),
+        allowNull: false,
+      },
+      phone: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        // unique: true,
+      },
+      otp: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      otpExpire: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+      },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+      },
+      reasonToDecline: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+      },
+    },
+    {
+      // Define default scope to exclude createdAt and updatedAt globally
+      defaultScope: {
+        attributes: {
+          exclude: ['deletedAt'],
+        },
+      },
+      timestamps: true,
+      paranoid: true,
+    }
+  );
 
-const userSchema = mongoose.Schema(
-  {
-    babies : [{
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Baby',
-    }],
-    email: {
-      type: String,
-    },
-    phone: {
-      type: String,
-    },
-    otp: {
-      type: Number,
-    },
-    otpExpire: {
-      type: Number,
-    },
-    role: {
-      type: String,
-      enum: roles,
-      default: 'user',
-    },
-    authType: {
-      type: String,
-      enum: authTypes,
-      // required: true,
-      // default : 'phoneAuth',
-    },
-    notificationToken: {
-      type: String,
-    },
-    profile: {
-      name: {
-        type: String,
-      },
-      avatar: {
-        type: String,
-      },
-      birthDate: {
-        type: Date,
-        // required: true,
-        trim: true,
-      },
-      parentType: {
-        type: String,
-        enum: ['Father', 'Mother'],
-        default: 'Mother',
-      },
-    },
-    wallet : {
-      type : mongoose.SchemaTypes.ObjectId,
-      ref : 'Wallet',
-    },
-    referral: {
-      referralCode: {
-        type: String,
-      },
-      isReferred: {
-        type: Boolean,
-        default: false,
-      },
-      usersReferred: [{
-        type: String,
-      }],
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+  // check mobile is exist or not
+  User.prototype.isPhoneNumberTaken = async function (phone, role) {
+    if (phone === this.phone && role === this.role) {
+      return true;
+    }
+    return false;
+  };
 
-// add plugin that converts mongoose to json
-userSchema.plugin(toJSON);
-userSchema.plugin(paginate);
+  /**
+   * Helper method for defining associations.
+   * This method is not a part of DataTypes lifecycle.
+   * The `models/index` file will call this method automatically.
+   */
+  User.associate = function (models) {
+    User.hasOne(models.SuperAdminInfo, { foreignKey: 'userId' });
+    User.hasOne(models.CustomerInfo, { foreignKey: 'userId' });
+    User.hasOne(models.ArtistInfo, { foreignKey: 'userId', as: 'artistInfos' });
+  };
 
-/**
- * Check if email is taken
- * @param {string} email - The user's email
- * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
- * @returns {Promise<boolean>}
- */
-userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
-  const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
-  return !!user;
+  return User;
 };
-
-/**
- * Check if phoneNumber is taken
- * @param {string} phone - The user's phone number
- * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
- * @returns {Promise<boolean>}
- */
-
-userSchema.statics.isPhoneNumberTaken = async function (phone, excludeUserId) {
-  const user = await this.findOne({ phone, _id: { $ne: excludeUserId } });
-  return !!user;
-};
-
-/**
- * Check if password matches the user's password
- * @param {string} password
- * @returns {Promise<boolean>}
- */
-userSchema.methods.isPasswordMatch = async function (password) {
-  const user = this;
-  return bcrypt.compare(password, user.password);
-};
-
-userSchema.pre('save', async function (next) {
-  const user = this;
-  if (user.isModified('password')) {
-    user.password = await bcrypt.hash(user.password, 8);
-  }
-  next();
-});
-
-// Function referral code on create..s
-
-/**
- * @typedef User
- */
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
